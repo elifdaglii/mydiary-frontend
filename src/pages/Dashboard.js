@@ -35,11 +35,28 @@ const Dashboard = () => {
   };
 
   // Filter entries based on search term
-  const filteredEntries = entries.filter(entry =>
-    entry.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    entry.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (entry.mood && entry.mood.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredEntries = entries.filter(entry => {
+    const searchLower = searchTerm.toLowerCase();
+    const entryDate = new Date(entry.createdAt);
+    const dateString = entryDate.toLocaleDateString('tr-TR'); // 24.06.2025
+    const dateStringEn = entryDate.toLocaleDateString('en-US'); // 6/24/2025
+    const year = entryDate.getFullYear().toString(); // 2025
+    const month = entryDate.toLocaleDateString('en-US', { month: 'long' }).toLowerCase(); // june
+    const monthTr = entryDate.toLocaleDateString('tr-TR', { month: 'long' }).toLowerCase(); // haziran
+    const day = entryDate.getDate().toString(); // 24
+    
+    return (
+      entry.title.toLowerCase().includes(searchLower) ||
+      entry.content.toLowerCase().includes(searchLower) ||
+      (entry.mood && entry.mood.toLowerCase().includes(searchLower)) ||
+      dateString.includes(searchTerm) || // 24.06.2025
+      dateStringEn.includes(searchTerm) || // 6/24/2025
+      year.includes(searchTerm) || // 2025
+      month.includes(searchLower) || // june
+      monthTr.includes(searchLower) || // haziran
+      day.includes(searchTerm) // 24
+    );
+  });
 
   if (loading) {
     return (
@@ -210,7 +227,7 @@ const Dashboard = () => {
         }}>
           <input
             type="text"
-            placeholder="🔍 Search your memories... (title, content, mood)"
+            placeholder="🔍 Search your memories... (title, content, mood, date)"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{
