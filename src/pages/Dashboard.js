@@ -6,6 +6,7 @@ const Dashboard = () => {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchEntries();
@@ -32,6 +33,13 @@ const Dashboard = () => {
       }
     }
   };
+
+  // Filter entries based on search term
+  const filteredEntries = entries.filter(entry =>
+    entry.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    entry.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (entry.mood && entry.mood.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
   if (loading) {
     return (
@@ -142,9 +150,11 @@ const Dashboard = () => {
           border: '1px solid rgba(255,255,255,0.2)'
         }}>
           <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#FFD700' }}>
-            {entries.length}
+            {searchTerm ? filteredEntries.length : entries.length}
           </div>
-          <div style={{ fontSize: '14px', opacity: '0.8' }}>Total Entries</div>
+          <div style={{ fontSize: '14px', opacity: '0.8' }}>
+            {searchTerm ? 'Found Entries' : 'Total Entries'}
+          </div>
         </div>
         
         <div style={{
@@ -188,6 +198,90 @@ const Dashboard = () => {
           </div>
           <div style={{ fontSize: '14px', opacity: '0.8' }}>Streak</div>
         </div>
+      </div>
+
+      {/* Search Bar */}
+      <div style={{
+        maxWidth: '800px',
+        margin: '0 auto 40px auto'
+      }}>
+        <div style={{
+          position: 'relative'
+        }}>
+          <input
+            type="text"
+            placeholder="🔍 Search your memories... (title, content, mood)"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '20px 60px 20px 20px',
+              fontSize: '16px',
+              border: '2px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '25px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              color: 'white',
+              backdropFilter: 'blur(15px)',
+              transition: 'all 0.3s ease',
+              boxSizing: 'border-box'
+            }}
+            onFocus={(e) => {
+              e.target.style.border = '2px solid #FFD700';
+              e.target.style.transform = 'scale(1.02)';
+              e.target.style.boxShadow = '0 0 30px rgba(255, 215, 0, 0.3)';
+            }}
+            onBlur={(e) => {
+              e.target.style.border = '2px solid rgba(255, 255, 255, 0.2)';
+              e.target.style.transform = 'scale(1)';
+              e.target.style.boxShadow = 'none';
+            }}
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              style={{
+                position: 'absolute',
+                right: '15px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'rgba(255, 255, 255, 0.2)',
+                border: 'none',
+                borderRadius: '50%',
+                width: '35px',
+                height: '35px',
+                color: 'white',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                fontSize: '16px'
+              }}
+              onMouseOver={(e) => {
+                e.target.style.background = 'rgba(255, 255, 255, 0.3)';
+                e.target.style.transform = 'translateY(-50%) scale(1.1)';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.background = 'rgba(255, 255, 255, 0.2)';
+                e.target.style.transform = 'translateY(-50%) scale(1)';
+              }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+        
+        {/* Search Results Info */}
+        {searchTerm && (
+          <div style={{
+            textAlign: 'center',
+            marginTop: '15px',
+            fontSize: '14px',
+            opacity: '0.8'
+          }}>
+            {filteredEntries.length > 0 
+              ? `Found ${filteredEntries.length} result${filteredEntries.length !== 1 ? 's' : ''} for "${searchTerm}"`
+              : `No results found for "${searchTerm}"`
+            }
+          </div>
+        )}
       </div>
 
       {/* Error Message */}
@@ -262,6 +356,49 @@ const Dashboard = () => {
               🚀 Create First Entry
             </Link>
           </div>
+        ) : filteredEntries.length === 0 ? (
+          /* No Search Results */
+          <div style={{
+            textAlign: 'center',
+            padding: '80px 20px'
+          }}>
+            <div style={{
+              fontSize: '120px',
+              marginBottom: '30px',
+              opacity: '0.6'
+            }}>
+              🔍
+            </div>
+            <h3 style={{
+              fontSize: '28px',
+              fontWeight: 'bold',
+              marginBottom: '16px'
+            }}>
+              No Results Found
+            </h3>
+            <p style={{
+              fontSize: '18px',
+              opacity: '0.8',
+              marginBottom: '40px',
+              maxWidth: '400px',
+              margin: '0 auto 40px auto'
+            }}>
+              Try searching with different keywords or{' '}
+              <button
+                onClick={() => setSearchTerm('')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#FFD700',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  fontSize: 'inherit'
+                }}
+              >
+                clear your search
+              </button>
+            </p>
+          </div>
         ) : (
           /* Entries Grid */
           <div style={{
@@ -269,7 +406,7 @@ const Dashboard = () => {
             gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
             gap: '24px'
           }}>
-            {entries.map((entry, index) => (
+            {filteredEntries.map((entry, index) => (
               <div 
                 key={entry.id} 
                 style={{
@@ -401,6 +538,13 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+
+      {/* Custom CSS */}
+      <style jsx>{`
+        input::placeholder {
+          color: rgba(255, 255, 255, 0.6);
+        }
+      `}</style>
     </div>
   );
 };
